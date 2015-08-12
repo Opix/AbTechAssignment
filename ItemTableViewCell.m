@@ -6,6 +6,8 @@
 //  Copyright (c) 2012 OPIX. All rights reserved.
 //
 
+// Response to tap is slow -> fix:
+// http://stackoverflow.com/questions/9357026/super-slow-lag-delay-on-initial-keyboard-animation-of-uitextfield
 
 #import "ItemTableViewCell.h"
 @interface HeaderTableViewCell ()
@@ -44,8 +46,10 @@
 @synthesize ytd;
 @synthesize delegate;
 
-- (void)textFieldDidBeginEditing:(UITextField *)textField{
-    [textField becomeFirstResponder];
+
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
+{
+    return YES;
 }
 
 - (void)textFieldDidEndEditing:(UITextField *)textField

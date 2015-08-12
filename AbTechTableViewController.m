@@ -96,7 +96,7 @@
     else
     {
         Section* oneSection  = (Section*)[arraySections objectAtIndex: section];
-        headerCell.title.text = [NSString stringWithFormat: @"Section %d - %@", section + 1, oneSection.title];
+        headerCell.title.text = [NSString stringWithFormat: @"Section %ld - %@", (long)(section + 1), oneSection.title];
     }
 
     return headerCell;
