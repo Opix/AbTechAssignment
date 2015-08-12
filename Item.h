@@ -18,10 +18,6 @@
 @interface Item : NSObject
 {
     NSString* title;
-//    double   q1;
-//    double   q2;
-//    double   q3;
-//    double   q4;
 }
 
 @property (nonatomic, copy)         NSString *title;

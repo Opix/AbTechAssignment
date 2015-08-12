@@ -4,12 +4,7 @@
 //  Created by GEMINI on 4/23/14.
 //  Copyright (c) 2015 GEMINI. All rights reserved.
 //
-// References:
-// 2) Indexed list:
-// https://developer.apple.com/library/ios/documentation/UserExperience/Conceptual/TableView_iPhone/CreateConfigureTableView/CreateConfigureTableView.html
-
-// 5) Add border to UIButton:
-// http://stackoverflow.com/questions/26161429/set-uibutton-layer-border-width-and-color-in-interface-builder
+// Investment Accounts has subsections.
 
 #import "AppDelegate.h"
 #import "AbTechTableViewController.h"
@@ -17,21 +12,7 @@
 #import "Item.h"
 
 #define HEADER_HEIGHT   10.0f//44.0f
-
-#define SECTION1        0
-#define SECTION2        1
-#define SECTION3        2
-#define SECTION4        3
-#define SECTION5        4
-#define SECTION6        5
 #define SECTION_SUMMARY 6
-
-#define DISPLAY_TITLE   0
-#define DISPLAY_Q1      1
-#define DISPLAY_Q2      2
-#define DISPLAY_Q3      3
-#define DISPLAY_Q4      4
-#define DISPLAY_YTD     5
 
 @interface HeaderTableViewCell ()
 @end
@@ -167,7 +148,7 @@
     else
     {
         Section* oneSection  = (Section*)[arraySections objectAtIndex: section];
-        headerCell.title.text = [NSString stringWithFormat: @"Section %d - %@", section + 1, oneSection.title];
+        headerCell.title.text = [NSString stringWithFormat: @"Section %ld - %@", section + 1, oneSection.title];
     }
 
     return headerCell;
@@ -178,17 +159,17 @@
     FooterTableViewCell *footerCell = (FooterTableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"footerCell"];
     footerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#1088DD"];
 
+    double q1 = 0.0;
+    double q2 = 0.0;
+    double q3 = 0.0;
+    double q4 = 0.0;
+    double ytd = 0.0;
+
     if (section == SECTION_SUMMARY)
     {
         // Change the background to purple.
         footerCell.contentView.backgroundColor = [UIColor purpleColor];
         footerCell.title.text   = @"Grand Total";
-        
-        double q1 = 0.0;
-        double q2 = 0.0;
-        double q3 = 0.0;
-        double q4 = 0.0;
-        double ytd = 0.0;
         
         for (Section* oneSection in arraySections)
         {
@@ -214,21 +195,10 @@
                 ytd += [oneSection calculateYTDTotal];
             }
         }
-        
-        footerCell.q1.text      = [self formatToUSCurrency: q1];
-        footerCell.q2.text      = [self formatToUSCurrency: q2];
-        footerCell.q3.text      = [self formatToUSCurrency: q3];
-        footerCell.q4.text      = [self formatToUSCurrency: q4];
-        footerCell.ytd.text     = [self formatToUSCurrency: ytd];
     }
     else
     {
         Section* oneSection  = (Section*)[arraySections objectAtIndex: section];
-        double q1 = 0.0;
-        double q2 = 0.0;
-        double q3 = 0.0;
-        double q4 = 0.0;
-        double ytd = 0.0;
 
         if ([oneSection.title isEqualToString: @"Investment Accounts"])
         {
@@ -252,13 +222,13 @@
             ytd = [oneSection calculateYTDTotal];
         }
         
-        footerCell.title.text   = [NSString stringWithFormat: @"Total - Section %d - %@", section + 1, oneSection.title];
-        footerCell.q1.text      = [self formatToUSCurrency: q1];
-        footerCell.q2.text      = [self formatToUSCurrency: q2];
-        footerCell.q3.text      = [self formatToUSCurrency: q3];
-        footerCell.q4.text      = [self formatToUSCurrency: q4];
-        footerCell.ytd.text     = [self formatToUSCurrency: ytd];
+        footerCell.title.text   = [NSString stringWithFormat: @"Total - Section %ld - %@", section + 1, oneSection.title];
     }
+    footerCell.q1.text      = [self formatToUSCurrency: q1];
+    footerCell.q2.text      = [self formatToUSCurrency: q2];
+    footerCell.q3.text      = [self formatToUSCurrency: q3];
+    footerCell.q4.text      = [self formatToUSCurrency: q4];
+    footerCell.ytd.text     = [self formatToUSCurrency: ytd];
     
     return footerCell;
 }
@@ -320,9 +290,8 @@
     
     if (indexPath.section == SECTION_SUMMARY)
     {
-        // ItemTableViewCell *cell = (ItemTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"itemCell" forIndexPath:indexPath];
-
         FooterTableViewCell *cell = (FooterTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"subFooterCell" forIndexPath:indexPath];
+        // Set text = black and background = white.
         cell.contentView.backgroundColor = [UIColor whiteColor];
         cell.q1.textColor       = [UIColor blackColor];
         cell.q2.textColor       = [UIColor blackColor];
@@ -361,7 +330,7 @@
             ytd = [oneSection calculateYTDTotal];
         }
         
-        cell.title.text   = [NSString stringWithFormat: @"Section %d - %@", indexPath.row, oneSection.title];
+        cell.title.text   = [NSString stringWithFormat: @"Section %ld - %@", indexPath.row, oneSection.title];
         cell.q1.text      = [self formatToUSCurrency: q1];
         cell.q2.text      = [self formatToUSCurrency: q2];
         cell.q3.text      = [self formatToUSCurrency: q3];
@@ -399,7 +368,7 @@
             {
                 ItemTableViewCell *cell = (ItemTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"itemCell" forIndexPath:indexPath];
                 [cell setDelegate: self];
-                NSLog(@"indexPath.row: %d", indexPath.row);
+                NSLog(@"indexPath.row: %ld", indexPath.row);
 
                 Item* oneItem = (Item*)[oneSubSection.items objectAtIndex: (indexPath.row - 1 - sectionHeader)];
                 
@@ -537,9 +506,10 @@
 - (void)editDidFinish: (UITextField *)textField
 {
     selectedIndexPath = [self.tableView indexPathForCell:(ItemTableViewCell*)[[textField superview] superview]];
-    NSLog(@"indexPath.row: %d", selectedIndexPath.row);
-    NSLog(@"indexPath.section: %d", selectedIndexPath.section);
+    NSLog(@"indexPath.row: %ld", selectedIndexPath.row);
+    NSLog(@"indexPath.section: %ld", selectedIndexPath.section);
     
+    // Remove $ sign
     NSString* newValue = [[textField text] stringByReplacingOccurrencesOfString: @"$" withString: @""];
     NSInteger index = [textField tag];
     
