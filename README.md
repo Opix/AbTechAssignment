@@ -1,5 +1,5 @@
 # AbTechAssignment
-An assignment from AbTech. Duplicating an existing app (see 3 .png screen shots) which I saw in an iPad. 
+An assignment from AbTech. Duplicating an existing app which I saw in an iPad. 
 Data is from a .json file, and displayed in a UITableView. 
 
 Data consists of several groups, and each one is in a UITableView section. The first row in a section is header, 
@@ -13,3 +13,5 @@ Data can be changed and then the entire table is updated immediately.
 Each header's top-right and top-left corners are rounded. Likewise, a footer's bottom-right and bottom-left are rounded as well.
 
 iPad only, but both vertical and horizontal orientations are supported.
+
+See 3 .png screen shots to see the output.
