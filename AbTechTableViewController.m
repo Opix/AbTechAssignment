@@ -138,6 +138,8 @@
 - (HeaderTableViewCell *) headerInSection:(NSInteger)section
 {
     HeaderTableViewCell *headerCell = (HeaderTableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"headerCell"];
+    // Need this; otherwise, the summary header (purple)  may be resused.
+    headerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#1088DD"];
     
     // Change the background to purple.
     if (section == SECTION_SUMMARY)
@@ -157,6 +159,7 @@
 - (FooterTableViewCell *) footerInSection:(NSInteger)section
 {
     FooterTableViewCell *footerCell = (FooterTableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"footerCell"];
+    // Need this; otherwise, the summary footer (purple)  may be resused.
     footerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#1088DD"];
 
     double q1 = 0.0;
