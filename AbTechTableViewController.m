@@ -11,64 +11,10 @@
 #import "Section.h"
 #import "Item.h"
 
+
 #define HEADER_HEIGHT   10.0f
 #define SECTION_SUMMARY 6
 
-@interface HeaderTableViewCell ()
-@end
-
-@interface ItemTableViewCell()
-@end
-
-@interface FooterTableViewCell ()
-@end
-
-@interface SubsectionHeaderTableViewCell ()
-@end
-
-@implementation HeaderTableViewCell
-@end
-
-@implementation SubsectionHeaderTableViewCell
-@end
-
-@implementation FooterTableViewCell
-@synthesize title;
-@synthesize q1;
-@synthesize q2;
-@synthesize q3;
-@synthesize q4;
-@synthesize ytd;
-@end
-
-@implementation ItemTableViewCell
-@synthesize title;
-@synthesize q1;
-@synthesize q2;
-@synthesize q3;
-@synthesize q4;
-@synthesize ytd;
-@synthesize delegate;
-
-- (void)textFieldDidBeginEditing:(UITextField *)textField{
-    [textField becomeFirstResponder];
-}
-
-- (void)textFieldDidEndEditing:(UITextField *)textField
-{
-    [[self delegate] editDidFinish: textField];
-    [textField resignFirstResponder];
-}
-
-- (BOOL)textFieldShouldReturn:(UITextField *)textField
-{
-    if (textField == self.q1 ||textField == self.q2 ||textField == self.q3 || textField == self.q4) {
-        [textField resignFirstResponder];
-        return NO;
-    }
-    return YES;
-}
-@end
 
 @implementation AbTechTableViewController
 @synthesize arraySections, selectedIndexPath;
@@ -487,6 +433,16 @@
         mlayer.path = maskPath.CGPath;
         cell.layer.mask = mlayer;
     }
+}
+
+// Catch when orientation changes:
+// https://developer.apple.com/library/ios/documentation/UIKit/Reference/UIContentContainer_Ref/index.html#//apple_ref/occ/intfm/UIContentContainer/viewWillTransitionToSize:withTransitionCoordinator:
+// This is necessary so that the rounded cells (section headers and footers) will be redrawn correctly.
+- (void)viewWillTransitionToSize:(CGSize)size withTransitionCoordinator:(id<UIViewControllerTransitionCoordinator>)coordinator
+{
+    [super viewWillTransitionToSize: size withTransitionCoordinator: coordinator];
+    // Need to refresh because the header width changes and therefore the header lines need to be recalculated.
+    [self.tableView reloadData];
 }
 
 + (UIColor *)colorFromHexString:(NSString *)hexString {
