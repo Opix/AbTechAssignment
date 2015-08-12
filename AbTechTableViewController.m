@@ -148,7 +148,7 @@
     else
     {
         Section* oneSection  = (Section*)[arraySections objectAtIndex: section];
-        headerCell.title.text = [NSString stringWithFormat: @"Section %ld - %@", section + 1, oneSection.title];
+        headerCell.title.text = [NSString stringWithFormat: @"Section %d - %@", section + 1, oneSection.title];
     }
 
     return headerCell;
@@ -222,7 +222,7 @@
             ytd = [oneSection calculateYTDTotal];
         }
         
-        footerCell.title.text   = [NSString stringWithFormat: @"Total - Section %ld - %@", section + 1, oneSection.title];
+        footerCell.title.text   = [NSString stringWithFormat: @"Total - Section %ld - %@", (long)(section + 1), oneSection.title];
     }
     footerCell.q1.text      = [self formatToUSCurrency: q1];
     footerCell.q2.text      = [self formatToUSCurrency: q2];
@@ -330,7 +330,7 @@
             ytd = [oneSection calculateYTDTotal];
         }
         
-        cell.title.text   = [NSString stringWithFormat: @"Section %ld - %@", indexPath.row, oneSection.title];
+        cell.title.text   = [NSString stringWithFormat: @"Section %ld - %@", (long)indexPath.row, oneSection.title];
         cell.q1.text      = [self formatToUSCurrency: q1];
         cell.q2.text      = [self formatToUSCurrency: q2];
         cell.q3.text      = [self formatToUSCurrency: q3];
@@ -368,7 +368,7 @@
             {
                 ItemTableViewCell *cell = (ItemTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"itemCell" forIndexPath:indexPath];
                 [cell setDelegate: self];
-                NSLog(@"indexPath.row: %ld", indexPath.row);
+                NSLog(@"indexPath.row: %ld", (long)indexPath.row);
 
                 Item* oneItem = (Item*)[oneSubSection.items objectAtIndex: (indexPath.row - 1 - sectionHeader)];
                 
@@ -413,10 +413,6 @@
         return cell;
     }
     return nil;
-}
-
-- (void)tableView:(UITableView *)tableView commitEditingStyle:(UITableViewCellEditingStyle)editingStyle forRowAtIndexPath:(NSIndexPath *)indexPath {
-    // No statement or algorithm is needed in here. Just the implementation
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -506,8 +502,8 @@
 - (void)editDidFinish: (UITextField *)textField
 {
     selectedIndexPath = [self.tableView indexPathForCell:(ItemTableViewCell*)[[textField superview] superview]];
-    NSLog(@"indexPath.row: %ld", selectedIndexPath.row);
-    NSLog(@"indexPath.section: %ld", selectedIndexPath.section);
+    NSLog(@"indexPath.row: %ld", (long)selectedIndexPath.row);
+    NSLog(@"indexPath.section: %ld", (long)selectedIndexPath.section);
     
     // Remove $ sign
     NSString* newValue = [[textField text] stringByReplacingOccurrencesOfString: @"$" withString: @""];
