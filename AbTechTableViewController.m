@@ -11,7 +11,7 @@
 #import "Section.h"
 #import "Item.h"
 
-#define HEADER_HEIGHT   10.0f//44.0f
+#define HEADER_HEIGHT   10.0f
 #define SECTION_SUMMARY 6
 
 @interface HeaderTableViewCell ()
@@ -77,8 +77,8 @@
 {
     [super viewDidLoad];
     
-    arraySections      = [[NSMutableArray alloc] init];
-    selectedIndexPath = [NSIndexPath indexPathForRow:1 inSection:0];
+    arraySections       = [[NSMutableArray alloc] init];
+    selectedIndexPath   = [NSIndexPath indexPathForRow:1 inSection:0];
     
     // Get data from a .json file.
     NSString *filePath  = [[NSBundle mainBundle] pathForResource:@"AbTechAssginment" ofType:@"json"];
@@ -88,8 +88,8 @@
     [self fillArraySections: json subSection: nil];
 
     // Set Table Header
-    UITableViewCell* tableHeader = (UITableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"tableHeader"];
-    self.tableView.tableHeaderView = tableHeader;
+    UITableViewCell* tableHeader    = (UITableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"tableHeader"];
+    self.tableView.tableHeaderView  = tableHeader;
 }
 
 // Investment Account has 2 internal sections.
@@ -413,11 +413,6 @@
         return cell;
     }
     return nil;
-}
-
-- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
-{
-    return 60;
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
