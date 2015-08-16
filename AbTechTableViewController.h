@@ -11,13 +11,14 @@
 {
     NSMutableArray* arraySections;
     NSIndexPath* selectedIndexPath;
+    NSInteger sectionSummary;
 }
 
 @property NSMutableArray* arraySections;
 @property NSArray* arraySectionOrder;
 @property NSIndexPath* selectedIndexPath;
 
-- (NSString*) formatToUSCurrency: (double) price;
+- (NSString*) formatToUSCurrency: (double) price negative: (BOOL) bNegative;
 - (void) fillArraySections: (NSDictionary*) dictionary subSection: (NSMutableArray*) subArray;
 - (HeaderTableViewCell *) headerInSection:(NSInteger)section;
 - (FooterTableViewCell *) footerInSection:(NSInteger)section;

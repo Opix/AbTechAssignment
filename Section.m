@@ -27,29 +27,68 @@
 {
     double total = 0.0;
     
-    for (Item* oneItem in items)
+    for (NSInteger i = 0; i < items.count; i++)
+    //for (Item* oneItem in items)
     {
-        switch (index) {
-            case Q1:
-                total += oneItem.q1;
-                break;
-                
-            case Q2:
-                total += oneItem.q2;
-                break;
-                
-            case Q3:
-                total += oneItem.q3;
-                break;
-                
-            case Q4:
-                total += oneItem.q4;
-                break;
-                
-            default:
-                break;
+        if ([[items objectAtIndex: i] isKindOfClass: [NSArray class]])
+        {
+            NSArray* array = (NSArray*)[items objectAtIndex: i];
+            
+            for (NSInteger j = 0; j < array.count; j++)
+            {
+                Section* oneSection = (Section*)[array objectAtIndex: j];
+                total += [oneSection calculate1QuaterTotal: index];
+            }
+        }
+        else
+        {
+            Item* oneItem = (Item*)[items objectAtIndex: i];
+            
+            switch (index) {
+                case Q1:
+                    total += oneItem.q1;
+                    break;
+                    
+                case Q2:
+                    total += oneItem.q2;
+                    break;
+                    
+                case Q3:
+                    total += oneItem.q3;
+                    break;
+                    
+                case Q4:
+                    total += oneItem.q4;
+                    break;
+                    
+                default:
+                    break;
+            }
         }
     }
+    return total;
+}
+
+- (NSInteger) rowCount
+{
+    NSInteger total = 2; // one for header, one for footer.
+
+    for (NSInteger i = 0; i < items.count; i++)
+    {
+        if ([[items objectAtIndex: i] isKindOfClass: [NSArray class]])
+        {
+            NSArray* array = (NSArray*)[items objectAtIndex: i];
+            
+            for (NSInteger j = 0; j < array.count; j++)
+            {
+                Section* oneSection = (Section*)[array objectAtIndex: j];
+                total += [oneSection rowCount];
+            }
+        }
+        else
+            total++;
+    }
+    
     return total;
 }
 
@@ -58,9 +97,22 @@
 {
     double total = 0.0;
     if (index >= 0 && items.count > index) {
-        Item* oneItem = (Item*)[items objectAtIndex: index];
         
-        total = oneItem.q1 + oneItem.q2 + oneItem.q3 + oneItem.q4;
+        if ([[items objectAtIndex: index] isKindOfClass: [NSArray class]])
+        {
+            NSArray* array = (NSArray*)[items objectAtIndex: index];
+            
+            for (NSInteger j = 0; j < array.count; j++)
+            {
+                Section* oneSection = (Section*)[array objectAtIndex: j];
+                total += [oneSection calculateYTD: j];
+            }
+        }
+        else
+        {
+            Item* oneItem = (Item*)[items objectAtIndex: index];
+            total = oneItem.q1 + oneItem.q2 + oneItem.q3 + oneItem.q4;
+        }
     }
     return total;
 }
@@ -72,7 +124,7 @@
     
     for (NSInteger i = 0; i < items.count; i++)
         total += [self calculateYTD: i];
-    
+
     return total;
 }
 

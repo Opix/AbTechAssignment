@@ -22,5 +22,6 @@
 - (double) calculate1QuaterTotal: (NSInteger) index;
 - (double) calculateYTD: (NSInteger) index;
 - (double) calculateYTDTotal;
+- (NSInteger) rowCount;
 
 @end

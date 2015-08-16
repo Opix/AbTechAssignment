@@ -11,10 +11,11 @@
 #import "Section.h"
 #import "Item.h"
 
+#define ROW_TYPE_HEADER 0
+#define ROW_TYPE_FOOTER 1
+#define ROW_TYPE_ITEM   2
 
 #define HEADER_HEIGHT   10.0f
-#define SECTION_SUMMARY 6
-
 
 @implementation AbTechTableViewController
 @synthesize arraySections, selectedIndexPath;
@@ -36,12 +37,14 @@
     // Set Table Header
     UITableViewCell* tableHeader    = (UITableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"tableHeader"];
     self.tableView.tableHeaderView  = tableHeader;
+    
+    sectionSummary = arraySections.count; // 1 for summary
 }
 
 // Investment Account has 2 internal sections.
 - (void) fillArraySections: (NSDictionary*) dictionary subSection: (NSMutableArray*) subArray
 {
-    NSArray* arraySectionOrder = [NSArray arrayWithObjects: @"Cash & CDs", @"Cash & Investment Accounts", @"Investment Accounts", @"Taxes", @"Prepaid Taxes", @"Houses & Other Assets", nil];
+    NSArray* arraySectionOrder = [NSArray arrayWithObjects: @"Cash", @"CD's", @"Investments", @"Taxes", @"Property", nil];
     
     for (NSString* key in subArray ? dictionary : arraySectionOrder) {
         
@@ -51,7 +54,9 @@
         
         for (NSDictionary *itemDictionary in items)
         {
-            if ([key isEqualToString: @"Investment Accounts"])
+            NSString* title = itemDictionary[@"title"];
+            
+            if ([title isEqualToString: @""] || title == nil)
             {
                 NSMutableArray* investmentArray = [[NSMutableArray alloc] init];
                 
@@ -61,7 +66,7 @@
             }
             else
             {
-                Item *oneItem   = [[Item alloc] initWithTitle: itemDictionary[@"title"]];
+                Item *oneItem   = [[Item alloc] initWithTitle: title];
                 oneItem.q1      = [itemDictionary[@"Q1"] doubleValue];
                 oneItem.q2      = [itemDictionary[@"Q2"] doubleValue];
                 oneItem.q3      = [itemDictionary[@"Q3"] doubleValue];
@@ -85,18 +90,21 @@
 {
     HeaderTableViewCell *headerCell = (HeaderTableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"headerCell"];
     // Need this; otherwise, the summary header (purple)  may be resused.
-    headerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#1088DD"];
+    headerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#640064"]; // Purple
     
     // Change the background to purple.
-    if (section == SECTION_SUMMARY)
+    if (section == sectionSummary)
     {
         headerCell.title.text = @"Summary";
-        headerCell.contentView.backgroundColor = [UIColor purpleColor];
+        headerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#00A000"];//Green;
     }
     else
     {
         Section* oneSection  = (Section*)[arraySections objectAtIndex: section];
         headerCell.title.text = [NSString stringWithFormat: @"Section %ld - %@", (long)(section + 1), oneSection.title];
+        
+        if ([oneSection.title isEqualToString: @"Taxes"])
+            headerCell.contentView.backgroundColor = [UIColor redColor];
     }
 
     return headerCell;
@@ -106,7 +114,7 @@
 {
     FooterTableViewCell *footerCell = (FooterTableViewCell*)[self.tableView dequeueReusableCellWithIdentifier:@"footerCell"];
     // Need this; otherwise, the summary footer (purple)  may be resused.
-    footerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#1088DD"];
+    footerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#640064"]; // Purple
 
     double q1 = 0.0;
     double q2 = 0.0;
@@ -114,70 +122,47 @@
     double q4 = 0.0;
     double ytd = 0.0;
 
-    if (section == SECTION_SUMMARY)
+    BOOL bNegative  = NO;
+    
+    if (section == sectionSummary)
     {
         // Change the background to purple.
-        footerCell.contentView.backgroundColor = [UIColor purpleColor];
+        footerCell.contentView.backgroundColor = [AbTechTableViewController colorFromHexString: @"#00A000"]; //Green;
         footerCell.title.text   = @"Grand Total";
         
         for (Section* oneSection in arraySections)
         {
-            if ([oneSection.title isEqualToString: @"Investment Accounts"])
-            {
-                NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: 0];
-                
-                for (Section* oneSubSection in arraySubSection)
-                {
-                    q1  += [oneSubSection calculate1QuaterTotal: Q1];
-                    q2  += [oneSubSection calculate1QuaterTotal: Q2];
-                    q3  += [oneSubSection calculate1QuaterTotal: Q3];
-                    q4  += [oneSubSection calculate1QuaterTotal: Q4];
-                    ytd += [oneSubSection calculateYTDTotal];
-                }
-            }
-            else
-            {
-                q1  += [oneSection calculate1QuaterTotal: Q1];
-                q2  += [oneSection calculate1QuaterTotal: Q2];
-                q3  += [oneSection calculate1QuaterTotal: Q3];
-                q4  += [oneSection calculate1QuaterTotal: Q4];
-                ytd += [oneSection calculateYTDTotal];
-            }
+            q1  += [oneSection calculate1QuaterTotal: Q1];
+            q2  += [oneSection calculate1QuaterTotal: Q2];
+            q3  += [oneSection calculate1QuaterTotal: Q3];
+            q4  += [oneSection calculate1QuaterTotal: Q4];
+            ytd += [oneSection calculateYTDTotal];
         }
     }
     else
     {
         Section* oneSection  = (Section*)[arraySections objectAtIndex: section];
-
-        if ([oneSection.title isEqualToString: @"Investment Accounts"])
+        
+        if ([oneSection.title isEqualToString: @"Taxes"])
         {
-            NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: 0];
-
-            for (Section* oneSubSection in arraySubSection)
-            {
-                q1  += [oneSubSection calculate1QuaterTotal: Q1];
-                q2  += [oneSubSection calculate1QuaterTotal: Q2];
-                q3  += [oneSubSection calculate1QuaterTotal: Q3];
-                q4  += [oneSubSection calculate1QuaterTotal: Q4];
-                ytd += [oneSubSection calculateYTDTotal];
-            }
+            footerCell.contentView.backgroundColor = [UIColor redColor];
+            bNegative  = YES;
         }
-        else
-        {
-            q1 = [oneSection calculate1QuaterTotal: Q1];
-            q2 = [oneSection calculate1QuaterTotal: Q2];
-            q3 = [oneSection calculate1QuaterTotal: Q3];
-            q4 = [oneSection calculate1QuaterTotal: Q4];
-            ytd = [oneSection calculateYTDTotal];
-        }
+        
+        q1 = [oneSection calculate1QuaterTotal: Q1];
+        q2 = [oneSection calculate1QuaterTotal: Q2];
+        q3 = [oneSection calculate1QuaterTotal: Q3];
+        q4 = [oneSection calculate1QuaterTotal: Q4];
+        ytd = [oneSection calculateYTDTotal];
         
         footerCell.title.text   = [NSString stringWithFormat: @"Total - Section %ld - %@", (long)(section + 1), oneSection.title];
     }
-    footerCell.q1.text      = [self formatToUSCurrency: q1];
-    footerCell.q2.text      = [self formatToUSCurrency: q2];
-    footerCell.q3.text      = [self formatToUSCurrency: q3];
-    footerCell.q4.text      = [self formatToUSCurrency: q4];
-    footerCell.ytd.text     = [self formatToUSCurrency: ytd];
+
+    footerCell.q1.text  = [self formatToUSCurrency: q1 negative: bNegative];
+    footerCell.q2.text  = [self formatToUSCurrency: q2 negative: bNegative];
+    footerCell.q3.text  = [self formatToUSCurrency: q3 negative: bNegative];
+    footerCell.q4.text  = [self formatToUSCurrency: q4 negative: bNegative];
+    footerCell.ytd.text = [self formatToUSCurrency: ytd negative: bNegative];
     
     return footerCell;
 }
@@ -194,7 +179,7 @@
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
 {
-    return 7;
+    return sectionSummary + 1;
 }
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
@@ -202,26 +187,11 @@
     if (!arraySections.count)
         return 0;
     
-    if (section == SECTION_SUMMARY)
+    if (section == sectionSummary)
         return arraySections.count + 2;
     
     Section* oneSection  = (Section*)[arraySections objectAtIndex: section];
-    
-    // The Investment Accounts section has sub-sections.
-    if ([oneSection.title isEqualToString: @"Investment Accounts"])
-    {
-        NSInteger rows = 0;
-        NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: 0];
-        
-        for (Section* oneSubSection in arraySubSection)
-            rows += oneSubSection.items.count + 2; // 2 means header / footer for each sub-section
-        
-        return rows + 2; // header / footer for the section
-    }
-    else
-        return oneSection.items.count + 2;
-
-    return 0;
+    return [oneSection rowCount];
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath {
@@ -237,7 +207,7 @@
     if (indexPath.row == ([self.tableView numberOfRowsInSection:indexPath.section] - 1))
         return [self footerInSection: indexPath.section];
     
-    if (indexPath.section == SECTION_SUMMARY)
+    if (indexPath.section == sectionSummary)
     {
         FooterTableViewCell *cell = (FooterTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"subFooterCell" forIndexPath:indexPath];
         // Set text = black and background = white.
@@ -251,150 +221,172 @@
 
         Section* oneSection = [arraySections objectAtIndex: indexPath.row - 1];
         
-        double q1 = 0.0;
-        double q2 = 0.0;
-        double q3 = 0.0;
-        double q4 = 0.0;
-        double ytd = 0.0;
+        double q1 = [oneSection calculate1QuaterTotal: Q1];
+        double q2 = [oneSection calculate1QuaterTotal: Q2];
+        double q3 = [oneSection calculate1QuaterTotal: Q3];
+        double q4 = [oneSection calculate1QuaterTotal: Q4];
+        double ytd = [oneSection calculateYTDTotal];
         
-        if ([oneSection.title isEqualToString: @"Investment Accounts"])
-        {
-            NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: 0];
-            
-            for (Section* oneSubSection in arraySubSection)
-            {
-                q1  += [oneSubSection calculate1QuaterTotal: Q1];
-                q2  += [oneSubSection calculate1QuaterTotal: Q2];
-                q3  += [oneSubSection calculate1QuaterTotal: Q3];
-                q4  += [oneSubSection calculate1QuaterTotal: Q4];
-                ytd += [oneSubSection calculateYTDTotal];
-            }
-        }
-        else
-        {
-            q1 = [oneSection calculate1QuaterTotal: Q1];
-            q2 = [oneSection calculate1QuaterTotal: Q2];
-            q3 = [oneSection calculate1QuaterTotal: Q3];
-            q4 = [oneSection calculate1QuaterTotal: Q4];
-            ytd = [oneSection calculateYTDTotal];
-        }
+        cell.title.text = [NSString stringWithFormat: @"Section %ld - %@", (long)indexPath.row, oneSection.title];
         
-        cell.title.text   = [NSString stringWithFormat: @"Section %ld - %@", (long)indexPath.row, oneSection.title];
-        cell.q1.text      = [self formatToUSCurrency: q1];
-        cell.q2.text      = [self formatToUSCurrency: q2];
-        cell.q3.text      = [self formatToUSCurrency: q3];
-        cell.q4.text      = [self formatToUSCurrency: q4];
-        cell.ytd.text     = [self formatToUSCurrency: ytd];
+        BOOL bNegative  = [oneSection.title isEqualToString: @"Taxes"];
+        
+        cell.q1.text    = [self formatToUSCurrency: q1 negative: bNegative];
+        cell.q2.text    = [self formatToUSCurrency: q2 negative: bNegative];
+        cell.q3.text    = [self formatToUSCurrency: q3 negative: bNegative];
+        cell.q4.text    = [self formatToUSCurrency: q4 negative: bNegative];
+        cell.ytd.text   = [self formatToUSCurrency: ytd negative: bNegative];
 
         return cell;
     }
     
     Section* oneSection  = (Section*)[arraySections objectAtIndex: indexPath.section];
+    NSInteger currentRow = 1;
     
-    if ([oneSection.title isEqualToString: @"Investment Accounts"])
+    for (NSInteger j = 0; j < oneSection.items.count; j++)
     {
-        NSInteger sectionHeader = 1; // Subsection header starts with 1.
-        NSInteger sectionFooter = 2; // Subsection footer starts with 2.
-        
-        NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: 0];
-
-        for (NSInteger i = 0; i < arraySubSection.count; i++)
+        if ([[oneSection.items objectAtIndex: j] isKindOfClass: [NSArray class]])
         {
-            Section* oneSubSection  = (Section*)[arraySubSection objectAtIndex: i];
-
-            NSLog(@"oneSubSection.title: %@", oneSubSection.title);
-
-            sectionFooter = sectionHeader + oneSubSection.items.count + 1;
+            NSInteger sectionHeader = currentRow; // Subsection header starts with 1.
+            NSInteger sectionFooter = 2; // Subsection footer starts with 2.
             
-            if (indexPath.row == sectionHeader)
-            {
-                SubsectionHeaderTableViewCell *headerCell = (SubsectionHeaderTableViewCell*)[tableView dequeueReusableCellWithIdentifier: @"subsectionHeaderCell" forIndexPath:indexPath];
+            NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: j];
 
-                headerCell.title.text = oneSubSection.title;
-                return headerCell;
-            }
-            else if (indexPath.row > sectionHeader && indexPath.row < sectionFooter)
+            for (NSInteger i = 0; i < arraySubSection.count; i++)
             {
+                Section* oneSubSection  = (Section*)[arraySubSection objectAtIndex: i];
+
+                NSLog(@"oneSubSection.title: %@", oneSubSection.title);
+
+                sectionFooter = sectionHeader + oneSubSection.items.count + 1;
+                
+                if (indexPath.row == sectionHeader)
+                {
+                    SubsectionHeaderTableViewCell *headerCell = (SubsectionHeaderTableViewCell*)[tableView dequeueReusableCellWithIdentifier: @"subsectionHeaderCell" forIndexPath:indexPath];
+
+                    headerCell.title.text = oneSubSection.title;
+                    return headerCell;
+                }
+                else if (indexPath.row > sectionHeader && indexPath.row < sectionFooter)
+                {
+                    ItemTableViewCell *cell = (ItemTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"itemCell" forIndexPath:indexPath];
+                    [cell setDelegate: self];
+                    NSLog(@"indexPath.row: %ld", (long)indexPath.row);
+
+                    Item* oneItem = (Item*)[oneSubSection.items objectAtIndex: (indexPath.row - 1 - sectionHeader)];
+                    
+                    cell.title.text  = oneItem.title;
+                    
+                    BOOL bNegative  = [oneSection.title isEqualToString: @"Taxes"];
+
+                    cell.q1.text  = [self formatToUSCurrency: oneItem.q1 negative: bNegative];
+                    cell.q2.text  = [self formatToUSCurrency: oneItem.q2 negative: bNegative];
+                    cell.q3.text  = [self formatToUSCurrency: oneItem.q3 negative: bNegative];
+                    cell.q4.text  = [self formatToUSCurrency: oneItem.q4 negative: bNegative];
+                    cell.ytd.text = [self formatToUSCurrency: oneItem.q1 + oneItem.q2 + oneItem.q3 + oneItem.q4 negative: bNegative];
+                    return cell;
+                }
+                else if (indexPath.row == sectionFooter)
+                {
+                    BOOL bNegative  = [oneSection.title isEqualToString: @"Taxes"];
+
+                    FooterTableViewCell *footerCell = (FooterTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"subFooterCell" forIndexPath:indexPath];
+                    footerCell.contentView.backgroundColor = [UIColor lightGrayColor];
+                    
+                    footerCell.title.text   = [NSString stringWithFormat: @"Total - %@", oneSubSection.title];
+                    footerCell.q1.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q1] negative: bNegative];
+                    footerCell.q2.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q2] negative: bNegative];
+                    footerCell.q3.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q3] negative: bNegative];
+                    footerCell.q4.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q4] negative: bNegative];
+                    footerCell.ytd.text     = [self formatToUSCurrency: [oneSubSection calculateYTDTotal] negative: bNegative];
+                    
+                    footerCell.q1.textColor       = [UIColor whiteColor];
+                    footerCell.q2.textColor       = [UIColor whiteColor];
+                    footerCell.q3.textColor       = [UIColor whiteColor];
+                    footerCell.q4.textColor       = [UIColor whiteColor];
+                    footerCell.ytd.textColor      = [UIColor whiteColor];
+                    footerCell.title.textColor    = [UIColor whiteColor];
+
+                    return footerCell;
+                }
+                sectionHeader = sectionFooter + 1;
+            }
+            currentRow = sectionFooter + 1;
+        }
+        else
+        {
+            if (currentRow == indexPath.row)
+            {
+                BOOL bNegative  = [oneSection.title isEqualToString: @"Taxes"];
+
                 ItemTableViewCell *cell = (ItemTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"itemCell" forIndexPath:indexPath];
                 [cell setDelegate: self];
-                NSLog(@"indexPath.row: %ld", (long)indexPath.row);
-
-                Item* oneItem = (Item*)[oneSubSection.items objectAtIndex: (indexPath.row - 1 - sectionHeader)];
+                
+                Item* oneItem = (Item*)[oneSection.items objectAtIndex: indexPath.row - 1];
                 
                 cell.title.text  = oneItem.title;
-                cell.q1.text  = [self formatToUSCurrency: oneItem.q1];
-                cell.q2.text  = [self formatToUSCurrency: oneItem.q2];
-                cell.q3.text  = [self formatToUSCurrency: oneItem.q3];
-                cell.q4.text  = [self formatToUSCurrency: oneItem.q4];
-                cell.ytd.text = [self formatToUSCurrency: oneItem.q1 + oneItem.q2 + oneItem.q3 + oneItem.q4];
+                cell.q1.text  = [self formatToUSCurrency: oneItem.q1 negative: bNegative];
+                cell.q2.text  = [self formatToUSCurrency: oneItem.q2 negative: bNegative];
+                cell.q3.text  = [self formatToUSCurrency: oneItem.q3 negative: bNegative];
+                cell.q4.text  = [self formatToUSCurrency: oneItem.q4 negative: bNegative];
+                cell.ytd.text = [self formatToUSCurrency: oneItem.q1 + oneItem.q2 + oneItem.q3 + oneItem.q4 negative: bNegative];
                 return cell;
             }
-            else if (indexPath.row == sectionFooter)
-            {
-                FooterTableViewCell *footerCell = (FooterTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"subFooterCell" forIndexPath:indexPath];
-                footerCell.contentView.backgroundColor = [UIColor lightGrayColor];
-                
-                footerCell.title.text   = [NSString stringWithFormat: @"Total - %@", oneSubSection.title];
-                footerCell.q1.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q1]];
-                footerCell.q2.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q2]];
-                footerCell.q3.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q3]];
-                footerCell.q4.text      = [self formatToUSCurrency: [oneSubSection calculate1QuaterTotal: Q4]];
-                footerCell.ytd.text     = [self formatToUSCurrency: [oneSubSection calculateYTDTotal]];
-                
-                return footerCell;
-            }
-            sectionHeader += sectionFooter;
+            currentRow++;
         }
-    }
-    else
-    {
-        ItemTableViewCell *cell = (ItemTableViewCell*)[tableView dequeueReusableCellWithIdentifier:@"itemCell" forIndexPath:indexPath];
-        [cell setDelegate: self];
-        
-        Item* oneItem = (Item*)[oneSection.items objectAtIndex: indexPath.row - 1];
-        
-        cell.title.text  = oneItem.title;
-        cell.q1.text  = [self formatToUSCurrency: oneItem.q1];
-        cell.q2.text  = [self formatToUSCurrency: oneItem.q2];
-        cell.q3.text  = [self formatToUSCurrency: oneItem.q3];
-        cell.q4.text  = [self formatToUSCurrency: oneItem.q4];
-        cell.ytd.text = [self formatToUSCurrency: oneItem.q1 + oneItem.q2 + oneItem.q3 + oneItem.q4];
-        return cell;
     }
     return nil;
 }
 
 - (BOOL)tableView:(UITableView *)tableView canEditRowAtIndexPath:(NSIndexPath *)indexPath {
 
-    if (SECTION_SUMMARY == indexPath.section)
+    if (sectionSummary == indexPath.section)
         return NO;
     
     // Return NO if you do not want the specified item to be editable.
     return YES;
 }
 
-- (NSString*) formatToUSCurrency: (double) price
+// No decimals
+- (NSString*) formatToUSCurrency: (double) price negative: (BOOL) bNegative
 {
     NSDecimalNumber *decimal = [[NSDecimalNumber alloc] initWithDouble: price];
     NSLocale *priceLocale = [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]; // get the locale from your SKProduct
 
     NSNumberFormatter *currencyFormatter = [[NSNumberFormatter alloc] init];
-    [currencyFormatter setNumberStyle:NSNumberFormatterCurrencyStyle];
+    [currencyFormatter setNumberStyle: NSNumberFormatterCurrencyStyle];
     [currencyFormatter setLocale: priceLocale];
+    
+    // These 2 lines are for no decimals.
+    [currencyFormatter setGeneratesDecimalNumbers: NO];
+    [currencyFormatter setMaximumFractionDigits: 0];
     
     //NSString *currencyString = [currencyFormatter internationalCurrencySymbol]; // EUR, GBP, USD...
     
-    NSString *format = [currencyFormatter positiveFormat];
+    NSString *format = nil;
+    
+    if (bNegative)
+        format = [currencyFormatter negativeFormat];
+    else
+        format = [currencyFormatter positiveFormat];
+
     format = [format stringByReplacingOccurrencesOfString:@"¤" withString: @"$"]; //currencyString
     // ¤ is a placeholder for the currency symbol
-    [currencyFormatter setPositiveFormat: format];
+    
+    if (bNegative)
+        [currencyFormatter setNegativeFormat: @"-¤#,##0"]; // format
+    else
+        [currencyFormatter setPositiveFormat: format];
 
     return [currencyFormatter stringFromNumber:decimal];
 }
 // Round corners in header / footer sections
 // http://stackoverflow.com/questions/18822619/ios-7-tableview-like-in-settings-app-on-ipad
-- (void)tableView:(UITableView *)tableView willDisplayCell:(FooterTableViewCell *)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
+- (void)tableView:(UITableView *)tableView willDisplayCell:(FooterTableViewCell*)cell forRowAtIndexPath:(NSIndexPath *)indexPath {
     float cornerSize = 15.0; // change this if necessary
+    
+    //CGRect bounds = CGRectInset(cell.bounds, 10, 0);
+    //cell.bounds = bounds;
     
     // round all corners if there is only 1 cell
     /*
@@ -414,7 +406,7 @@
     else*/
     if (indexPath.row == 0) {
         UIBezierPath *maskPath;
-        maskPath = [UIBezierPath bezierPathWithRoundedRect:cell.bounds byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight) cornerRadii:CGSizeMake(cornerSize, cornerSize)];
+        maskPath = [UIBezierPath bezierPathWithRoundedRect: cell.bounds byRoundingCorners:(UIRectCornerTopLeft | UIRectCornerTopRight) cornerRadii:CGSizeMake(cornerSize, cornerSize)];
         
         CAShapeLayer *mlayer = [[CAShapeLayer alloc] init];
         mlayer.frame = cell.bounds;
@@ -426,7 +418,7 @@
         [cell setClipsToBounds:YES];
 
         UIBezierPath *maskPath;
-        maskPath = [UIBezierPath bezierPathWithRoundedRect:cell.bounds byRoundingCorners:(UIRectCornerBottomLeft | UIRectCornerBottomRight) cornerRadii:CGSizeMake(cornerSize, cornerSize)];
+        maskPath = [UIBezierPath bezierPathWithRoundedRect: cell.bounds byRoundingCorners:(UIRectCornerBottomLeft | UIRectCornerBottomRight) cornerRadii:CGSizeMake(cornerSize, cornerSize)];
         
         CAShapeLayer *mlayer = [[CAShapeLayer alloc] init];
         mlayer.frame = cell.bounds;
@@ -468,31 +460,44 @@
     // Find which data has been modified.
     Section* oneSection  = (Section*)[arraySections objectAtIndex: selectedIndexPath.section];
     
-    if ([oneSection.title isEqualToString: @"Investment Accounts"])
+    NSInteger currentRow = 1;
+    
+    for (NSInteger j = 0; j < oneSection.items.count; j++)
     {
-        NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: 0];
-        
-        NSInteger sectionHeader = 1; // Subsection header starts with 1.
-        NSInteger sectionFooter = 2; // Subsection footer starts with 2.
-        
-        for (NSInteger i = 0; i < arraySubSection.count; i++)
+        if ([[oneSection.items objectAtIndex: j] isKindOfClass: [NSArray class]])
         {
-            Section* oneSubSection  = (Section*)[arraySubSection objectAtIndex: i];
+            NSInteger sectionHeader = currentRow; // Subsection header starts with 1.
+            NSInteger sectionFooter = 2; // Subsection footer starts with 2.
             
-            NSLog(@"oneSubSection.title: %@", oneSubSection.title);
+            NSArray* arraySubSection = (NSArray*)[oneSection.items objectAtIndex: j];
             
-            sectionFooter = sectionHeader + oneSubSection.items.count + 1;
-            
-            if (selectedIndexPath.row > sectionHeader && selectedIndexPath.row < sectionFooter)
+            for (NSInteger i = 0; i < arraySubSection.count; i++)
             {
-                oneItem = (Item*)[oneSubSection.items objectAtIndex: (selectedIndexPath.row - 1 - sectionHeader)];
+                Section* oneSubSection  = (Section*)[arraySubSection objectAtIndex: i];
+                
+                NSLog(@"oneSubSection.title: %@", oneSubSection.title);
+                
+                sectionFooter = sectionHeader + oneSubSection.items.count + 1;
+                
+                if (selectedIndexPath.row > sectionHeader && selectedIndexPath.row < sectionFooter)
+                {
+                    oneItem = (Item*)[oneSubSection.items objectAtIndex: (selectedIndexPath.row - 1 - sectionHeader)];
+                    break;
+                }
+                sectionHeader = sectionFooter + 1;
+            }
+            currentRow = sectionFooter + 1;
+        }
+        else
+        {
+            if (currentRow == selectedIndexPath.row)
+            {
+                oneItem = (Item*)[oneSection.items objectAtIndex: selectedIndexPath.row - 1];
                 break;
             }
-            sectionHeader += sectionFooter;
+            currentRow++;
         }
     }
-    else
-        oneItem = (Item*)[oneSection.items objectAtIndex: selectedIndexPath.row - 1];
     
     // Not found -> don't do anything.
     if (!oneItem)
